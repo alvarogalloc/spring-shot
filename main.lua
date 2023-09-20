@@ -1,3 +1,4 @@
+---@diagnostic disable: duplicate-set-field
 -- Game resolution
 
 local vec = require("vec")
@@ -33,9 +34,17 @@ function love.update(dt)
 	-- Scale value
 	G.scaleX = love.graphics.getWidth() / G.width
 	G.scaleY = love.graphics.getHeight() / G.height
+  G.simulation:update(dt)
 end
 
 function love.draw()
+  -- make a gray grid background
+  love.graphics.setColor(0.2, 0.2, 0.2)
+  for i = 0, G.width, 50 do
+    love.graphics.setLineWidth(1)
+    love.graphics.line(i, 0, i, G.height)
+    love.graphics.line(0, i, G.width, i)
+  end
   -- Scale
   love.graphics.scale(G.scaleX, G.scaleY)
   -- Draw
@@ -51,4 +60,9 @@ function love.keypressed(key)
 		G.fullscreenON = false
 		love.window.setFullscreen(false)
 	end
+  G.simulation:keypressed(key)
+end
+
+function love.wheelmoved(x, y)
+  G.simulation:wheelmoved(x, y)
 end
