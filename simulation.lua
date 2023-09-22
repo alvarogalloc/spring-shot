@@ -1,4 +1,5 @@
 local vec = require("vec")
+local target = require("target")
 ---@class simulation
 ---@field pos vec
 ---@field v0 vec
@@ -11,12 +12,14 @@ local g = 9.8
 ---@param v0 vec
 ---@param angle number
 ---@param mass number
-function simulation.new(initial_pos, v0, angle, mass)
+---@param mytarget target
+function simulation.new(initial_pos, v0, angle, mass, mytarget )
 	return setmetatable({
 		pos = initial_pos,
 		v0 = v0,
 		angle = angle,
 		mass = mass,
+		mytarget = mytarget,
 	}, { __index = simulation })
 end
 function x_at_given_time(v0, angle, t)
@@ -77,8 +80,7 @@ function simulation:draw()
 	local current_x = self.pos.x + x_at_given_time(self.v0, self.angle, timepassed)
 	local current_y = G.height - (self.pos.y + y_at_given_time(self.v0, self.angle, timepassed))
 	love.graphics.circle("fill", current_x, current_y, 5)
-
-	love.graphics.print("initial height: " .. self.pos.y, 0, 0)
+  love.graphics.print("initial height: " .. self.pos.y, 0, 0)
 	love.graphics.print("v0: " .. self.v0:mod(), 0, 10)
 	love.graphics.print("angle: " .. self.angle, 0, 20)
 	love.graphics.print("mass: " .. self.mass, 0, 30)
@@ -133,4 +135,4 @@ end
 
 function simulation:keypressed(key) end
 
-return simulation.new(vec.new(0, 0), vec.new(50, 70), 40, 1)
+return simulation.new(vec.new(0, 0), vec.new(50, 70), 40, 1, target.new(vec.new(10, 10), 20))

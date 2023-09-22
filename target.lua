@@ -17,3 +17,9 @@ end
 function target:hit_by(projectile_pos, obstacle_pos)
   
 end
+
+function target:draw()
+  love.graphics.circle("fill", self.pos.x, self.pos.y, self.radius)
+end
+
+return target
