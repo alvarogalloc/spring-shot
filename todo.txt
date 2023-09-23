@@ -1,0 +1,3 @@
+- al presionar r, que cambien los datos del Simulador
+- mostrar los datos de entrada
+- ui para poner entrada del angulo y de la compresion

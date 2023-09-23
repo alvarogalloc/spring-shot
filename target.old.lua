@@ -3,8 +3,12 @@ local vec = require("vec")
 ---@class target
 ---@field pos vec
 ---@field radius number
-local target = {}
+target = {}
 
+---comment
+---@param pos vec
+---@param radius number
+---@return target
 function target.new(pos, radius)
 	return setmetatable({
 		pos = pos,

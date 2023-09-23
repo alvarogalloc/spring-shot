@@ -5,7 +5,9 @@ local target = require("target")
 ---@field v0 vec
 ---@field angle number
 ---@field mass number
-local simulation = {}
+---@field mytarget target
+simulation = {}
+simulation.__index = simulation
 local g = 9.8
 
 ---@param initial_pos vec
@@ -95,6 +97,7 @@ function simulation:draw()
 		0,
 		70
 	)
+	self.mytarget:draw()
 end
 
 local lastmouse_pos = vec.new(love.mouse.getPosition())
@@ -106,11 +109,14 @@ function simulation:update(dt)
 		if timepassed - move_timestep > 0 then
 			timepassed = timepassed - move_timestep
 		end
+		if  timepassed < move_timestep then timepassed = 0 end 
+
 	elseif love.keyboard.isDown("right") then
 		local time_for_out_of_bounds = time_for_out_of_bounds(G.width, G.height, self.pos, self.v0, self.angle)
 		if timepassed + move_timestep < time_for_out_of_bounds then
 			timepassed = timepassed + move_timestep
 		end
+		if time_for_out_of_bounds - timepassed < move_timestep then timepassed = time_for_out_of_bounds end 
 	else
 		timepassed = timepassed + timestep * dt
 		local current_x = self.pos.x + x_at_given_time(self.v0, self.angle, timepassed)
@@ -123,16 +129,21 @@ function simulation:update(dt)
 	local mouse_pos = vec.new(love.mouse.getX(), G.height - love.mouse.getY())
 	if love.mouse.isDown(1) then
 		self.pos.y = mouse_pos.y
+		if self.pos.y == 1 then self.pos.y = 0 end
 	end
 end
 
 function simulation:wheelmoved(x, y)
-	local new_angle = self.angle + x * 0.5
+	local new_angle = self.angle + y
 	if new_angle > -90 and new_angle < 90 then
 		self.angle = new_angle
 	end
 end
 
-function simulation:keypressed(key) end
+function simulation:keypressed(key)
+	local my_spring = spring.new(0.404, 40000)
+	self.v0 = my_spring:launch_vel(self)
+end
 
-return simulation.new(vec.new(0, 0), vec.new(50, 70), 40, 1, target.new(vec.new(10, 10), 20))
+return simulation
+
