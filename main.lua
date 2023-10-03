@@ -2,6 +2,7 @@
 -- Game resolution
 
 local vec = require("vec")
+require('data_generator')
 
 G = {
 	width = 600,
@@ -17,17 +18,14 @@ G = {
 function love.load()
 	-- Remove filter
 	love.graphics.setDefaultFilter("nearest", "nearest")
+
 	-- trick to get the real screen size
 	love.window.setMode(0, 0, {})
 	G.s_width = love.graphics.getWidth()
 	G.s_height = love.graphics.getHeight()
 	-- Window parameters
 	love.window.setTitle("Simulador Tiro Parabolico (Hecho por: Alvaro Gallo)")
-	love.window.setMode(
-		G.width,
-		G.height,
-		{ resizable = true, minwidth = G.width, minheight = G.height}
-	)
+	love.window.setMode(G.width, G.height, { resizable = true, minwidth = G.width, minheight = G.height })
 end
 
 function love.update(dt)
@@ -52,7 +50,16 @@ function love.draw()
 	G.simulation:draw()
 end
 
-function love.keypressed(key)
+function love.mousemoved(x, y, dx, dy)
+end
+
+function love.mousepressed(x, y, button, isTouch)
+end
+
+function love.mousereleased(x, y, button, isTouch)
+end
+
+function love.keypressed(key, scancode, isrepeat)
 	-- Fullscreen ON/OFF
 	if key == G.fullscreenKEY and G.fullscreenON == false then
 		G.fullscreenON = true
@@ -66,4 +73,10 @@ end
 
 function love.wheelmoved(x, y)
 	G.simulation:wheelmoved(x, y)
+end
+
+function love.keyreleased(key)
+end
+
+function love.textinput(text)
 end
