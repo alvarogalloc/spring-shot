@@ -23,7 +23,6 @@ end
 -- llegara al punto (x,y)??
 function llegara(m, g, k, h0, hf, L, x, y, angulo)
 	local v = velocidad_para_objetivo(g, L, hf, h0, angulo)
-	print(v)
 	local compresion_requerida = compresion_para_objetivo(v, k, m)
 	if compresion_requerida > 1 then
 		print(string.format("el resorte es demasiado debil para llegar a %.2f m/s, asi que no llegara", v))

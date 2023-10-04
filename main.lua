@@ -2,7 +2,8 @@
 -- Game resolution
 
 local vec = require("vec")
-require('data_generator')
+local UI = require("ui")
+require("data_generator")
 
 G = {
 	width = 600,
@@ -51,12 +52,22 @@ function love.draw()
 end
 
 function love.mousemoved(x, y, dx, dy)
+	local input = { x = x, y = y }
+	UI.mousemoved(input)
 end
 
 function love.mousepressed(x, y, button, isTouch)
+	local input = { x = x, y = y }
+	if button == 1 then
+		input = UI.mousepressed(input)
+	end
 end
 
 function love.mousereleased(x, y, button, isTouch)
+	local input = { x = x, y = y }
+	if button == 1 then
+		input = UI.mousereleased(input)
+	end
 end
 
 function love.keypressed(key, scancode, isrepeat)
@@ -69,14 +80,15 @@ function love.keypressed(key, scancode, isrepeat)
 		love.window.setFullscreen(false)
 	end
 	G.simulation:keypressed(key)
+	UI.keypressed(key)
 end
 
 function love.wheelmoved(x, y)
 	G.simulation:wheelmoved(x, y)
 end
 
-function love.keyreleased(key)
-end
+function love.keyreleased(key) end
 
 function love.textinput(text)
+	UI.textinput(text)
 end

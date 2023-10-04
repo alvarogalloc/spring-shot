@@ -12,6 +12,7 @@
 -- ---@field compression_input any
 simulator = {}
 simulator.__index = simulator
+local UI = require("ui")
 
 local debug_draw = true
 local show_help = false
@@ -21,6 +22,8 @@ local timepassed = 0
 local timeforsimulation = 0
 local timestep = 0.15
 local hit = false
+local angle = {"angulo"}
+local compresion = {"compresion"}
 
 ---return a mock simulator object
 ---@return simulator
@@ -236,6 +239,10 @@ function simulator:draw()
 	if launching then
 		self:draw_launch()
 	end
+	function draw_ui()
+		UI.draw{ x = 30, y = 30, UI.inputbox{angle} }
+	end
+	-- draw_ui()
 end
 
 function simulator:wheelmoved(x, y) end
