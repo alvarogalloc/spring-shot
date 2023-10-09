@@ -12,9 +12,11 @@
 -- ---@field compression_input any
 simulator = {}
 simulator.__index = simulator
-local UI = require("ui")
+local suit = require("suit")
 
-local debug_draw = true
+local debug_draw_checkbox = { id = 0, checked = false }
+local input_angulo = { id = 1, text = "45" }
+local input_compresion = { id = 2, text = "0.5" }
 local show_help = false
 local launching = false
 local init_vel = vec.new(0, 0)
@@ -22,8 +24,12 @@ local timepassed = 0
 local timeforsimulation = 0
 local timestep = 0.15
 local hit = false
-local angle = {"angulo"}
-local compresion = {"compresion"}
+local colors = {
+	ball = { 0, 255, 10 },
+	ball_hit = { 255, 0, 0 },
+	line = { 255, 55, 0 },
+}
+local ball_radius = 3
 
 ---return a mock simulator object
 ---@return simulator
@@ -35,7 +41,7 @@ function simulator.mock()
 	-- L: 400
 	-- obstacle_pos (x,y): 100, 500
 	-- g: 9
-	return simulator.new(0, 10, 1, 30000, 100, vec.new(550, 400), 9.81)
+	return simulator.new(0, 1, 50, 3000000, 300, vec.new(550, 400), 9.81)
 end
 
 ---return a new simulator object
@@ -54,7 +60,7 @@ function simulator.new(h0, hf, m, k, L, obstacle_pos, g)
 end
 
 -- function get_launch_vel(g, m, h0, hf, k, compression, angle)
-function get_launch_vel(k, x, m)
+local function get_launch_vel(k, x, m)
 	-- sqrt(2 * (mgh_launch + 1/2 kx^2 - mgh_target) / m)
 	-- Epe = k x^2/2
 	-- Ek = mV^2/2
@@ -64,10 +70,10 @@ function get_launch_vel(k, x, m)
 	return v0
 end
 
-function x_at_given_time(v0, angle, t)
+local function x_at_t(v0, angle, t)
 	return v0:mod() * math.cos(math.rad(angle)) * t
 end
-function y_at_given_time(v0, angle, g, t)
+local function y_at_t(v0, angle, g, t)
 	return v0:mod() * math.sin(math.rad(angle)) * t - 0.5 * g * t * t
 end
 
@@ -78,7 +84,7 @@ end
 ---@param angle number
 ---@param g number
 ---@return number
-function time_for_out_of_bounds(boundx, boundy, pos, v0, angle, g)
+local function time_for_out_of_bounds(boundx, boundy, pos, v0, angle, g)
 	local x_vel = v0:mod() * math.cos(math.rad(angle))
 	local time_x = (boundx - pos.x) / x_vel
 	local y_vel = v0:mod() * math.sin(math.rad(angle))
@@ -94,43 +100,75 @@ function simulator:reset_simulation()
 end
 
 function simulator:update(dt)
-	-- print(init_vel)
-	local change = 0.01
-	if love.keyboard.isDown("up") and self.compression < 1 then
-		self.compression = self.compression + change
-		self:reset_simulation()
-	elseif love.keyboard.isDown("down") and self.compression > 0 then
-		self.compression = self.compression - change
-		self:reset_simulation()
-	end
+	function make_ui()
+		suit.layout:reset(0, 0)
+		suit.Label("Angulo:", suit.layout:row(150, 20))
+		suit.Input(input_angulo, suit.layout:row(150, 20))
+		suit.Label("Compresion:", suit.layout:row(150, 20))
+		suit.Input(input_compresion, suit.layout:row(150, 20))
+		-- separation
+		suit.layout:row(200, 10)
+		suit.Label("Debug:", { align = "left" }, suit.layout:row(75, 40))
+		suit.Checkbox(debug_draw_checkbox, suit.layout:col(40, 40))
+		suit.layout:row(200, 10)
 
-	local angle_change = 1
-	if love.keyboard.isDown("right") then
-		self.angle = self.angle - angle_change
-		self:reset_simulation()
-	elseif love.keyboard.isDown("left") then
-		self.angle = self.angle + angle_change
-		self:reset_simulation()
+		if suit.Button("Reset", suit.layout:row(70, 30)).hit then
+			local h0, hf, m, k, L, obstacle, g = generate_simulator()
+			self.h0 = h0
+			self.hf = hf
+			self.m = m
+			self.k = k
+			self.L = L
+			self.obstacle_pos = obstacle
+			self.g = g
+			self:reset_simulation()
+		end
+		suit.layout:col(10, 30)
+		if suit.Button("Launch", suit.layout:col(70, 30)).hit then
+			if not launching then
+				launching = true
+				self:reset_simulation()
+			else
+				launching = false
+				timepassed = 0
+			end
+		end
 	end
+	function update_ui()
+    if input_angulo.text == "" or input_compresion.text == "" then
+      return
+    end
+    if tonumber(input_compresion.text) == nil or tonumber(input_angulo.text) == nil  then
+      input_compresion.text = tostring(self.compression)
+      input_angulo.text = tostring(self.angle)
+    end
+		if tostring(self.compression) ~= input_compresion.text or tostring(self.angle) ~= input_angulo.text then
+			self.compression = tonumber(input_compresion.text) or self.compression
+			self.angle = tonumber(input_angulo.text) or self.angle
+			self:reset_simulation()
+		end
+	end
+	make_ui()
+	update_ui()
 end
-local colors = {
-	ball = { 0, 255, 10 },
-	ball_hit = { 0, 255, 0 },
-	line = { 255, 55, 0 },
-}
 
 function simulator:draw_launch()
 	timepassed = timepassed + timestep
+
+	-- dibujar proyectil
 	love.graphics.setColor(colors.ball)
 	local projectile_pos = vec.new(
-		x_at_given_time(init_vel, self.angle, timepassed),
-		G.height - self.h0 - y_at_given_time(init_vel, self.angle, self.g, timepassed)
+		x_at_t(init_vel, self.angle, timepassed),
+		G.height - self.h0 - y_at_t(init_vel, self.angle, self.g, timepassed)
 	)
-	love.graphics.circle("fill", projectile_pos.x, projectile_pos.y, 3)
+	love.graphics.circle("fill", projectile_pos.x, projectile_pos.y, ball_radius)
+
+	-- if reached the edge in x or y of the window
 	if timepassed > timeforsimulation then
 		timepassed = 0
 		hit = false
 	end
+
 	-- collision
 	local distance = vec.new(self.L, G.height - self.hf) - projectile_pos
 	if distance:mod() < 6 then
@@ -139,7 +177,7 @@ function simulator:draw_launch()
 	if hit then
 		love.graphics.setColor(colors.ball_hit)
 		love.graphics.circle("fill", self.L, G.height - self.hf, 3)
-		if debug_draw then
+		if debug_draw_checkbox.checked then
 			love.graphics.print("Hit!", 0, 40)
 		end
 	end
@@ -190,8 +228,8 @@ function simulator:draw_debug()
 	-- draw the debug data of the simulator to the left of the screen
 	-- include angle and compression, and the current position of the projectile
 	local projectile_pos = vec.new(
-		x_at_given_time(init_vel, self.angle, timepassed),
-		G.height - self.h0 - y_at_given_time(init_vel, self.angle, self.g, timepassed)
+		x_at_t(init_vel, self.angle, timepassed),
+		G.height - self.h0 - y_at_t(init_vel, self.angle, self.g, timepassed)
 	)
 
 	local data = {
@@ -208,7 +246,7 @@ function simulator:draw_debug()
 	local line_height = 20
 	love.graphics.setColor(255, 255, 255)
 	for _, line in ipairs(data) do
-		love.graphics.print(line, 0, y, 0, 1.1, 1.1)
+		love.graphics.print(line, 0, y + 300, 0, 1.1, 1.1)
 		y = y + line_height
 	end
 end
@@ -232,48 +270,44 @@ function simulator:draw()
 
 	self:draw_data()
 
-	if debug_draw then
+	if debug_draw_checkbox.checked then
 		self:draw_debug()
 	end
 
 	if launching then
 		self:draw_launch()
 	end
-	function draw_ui()
-		UI.draw{ x = 30, y = 30, UI.inputbox{angle} }
-	end
-	-- draw_ui()
 end
 
 function simulator:wheelmoved(x, y) end
 
 ---@param key love.KeyConstant
 function simulator:keypressed(key)
-	if key == "r" then
-		local h0, hf, m, k, L, obstacle, g = generate_simulator()
-		self.h0 = h0
-		self.hf = hf
-		self.m = m
-		self.k = k
-		self.L = L
-		self.obstacle_pos = obstacle
-		self.g = g
-		self:reset_simulation()
-	end
-	if key == "h" then
-		show_help = not show_help
-	end
-	if key == "d" then
-		debug_draw = not debug_draw
-	end
-	if key == "l" then
-		if not launching then
-			launching = true
-			self:reset_simulation()
-		else
-			launching = false
-			timepassed = 0
-		end
-	end
+	-- if key == "r" then
+	-- 	local h0, hf, m, k, L, obstacle, g = generate_simulator()
+	-- 	self.h0 = h0
+	-- 	self.hf = hf
+	-- 	self.m = m
+	-- 	self.k = k
+	-- 	self.L = L
+	-- 	self.obstacle_pos = obstacle
+	-- 	self.g = g
+	-- 	self:reset_simulation()
+	-- end
+	-- if key == "h" then
+	-- 	show_help = not show_help
+	-- end
+	-- if key == "d" then
+	-- 	debug_draw = debug_draw
+	-- end
+	-- if key == "l" then
+	-- 	if not launching then
+	-- 		launching = true
+	-- 		self:reset_simulation()
+	-- 	else
+	-- 		launching = false
+	-- 		timepassed = 0
+	-- 	end
+	-- end
 end
 return simulator

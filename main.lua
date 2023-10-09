@@ -2,7 +2,7 @@
 -- Game resolution
 
 local vec = require("vec")
-local UI = require("ui")
+local suit = require("suit")
 require("data_generator")
 
 G = {
@@ -49,26 +49,14 @@ function love.draw()
 	love.graphics.scale(G.scaleX, G.scaleY)
 	-- Draw
 	G.simulation:draw()
+	suit.draw()
 end
 
-function love.mousemoved(x, y, dx, dy)
-	local input = { x = x, y = y }
-	UI.mousemoved(input)
-end
+function love.mousemoved(x, y, dx, dy) end
 
-function love.mousepressed(x, y, button, isTouch)
-	local input = { x = x, y = y }
-	if button == 1 then
-		input = UI.mousepressed(input)
-	end
-end
+function love.mousepressed(x, y, button, isTouch) end
 
-function love.mousereleased(x, y, button, isTouch)
-	local input = { x = x, y = y }
-	if button == 1 then
-		input = UI.mousereleased(input)
-	end
-end
+function love.mousereleased(x, y, button, isTouch) end
 
 function love.keypressed(key, scancode, isrepeat)
 	-- Fullscreen ON/OFF
@@ -80,7 +68,7 @@ function love.keypressed(key, scancode, isrepeat)
 		love.window.setFullscreen(false)
 	end
 	G.simulation:keypressed(key)
-	UI.keypressed(key)
+	suit.keypressed(key)
 end
 
 function love.wheelmoved(x, y)
@@ -90,5 +78,10 @@ end
 function love.keyreleased(key) end
 
 function love.textinput(text)
-	UI.textinput(text)
+	suit.textinput(text)
+end
+
+function love.textedited(text, start, length)
+	-- for IME input
+	suit.textedited(text, start, length)
 end
