@@ -8,28 +8,28 @@
 ---@field g number
 ---@field angle number
 ---@field compression number
--- ---@field angle_input any
--- ---@field compression_input any
 simulator = {}
 simulator.__index = simulator
 local suit = require("suit")
 
-local debug_draw_checkbox = { id = 0, checked = false }
-local input_angulo = { id = 1, text = "45" }
-local input_compresion = { id = 2, text = "0.5" }
-local show_help = false
-local launching = false
+local debug_draw_checkbox = { text = "Debug", checked = false }
+local input_angulo = { text = "45" }
+local input_compresion = { text = "89" }
+local is_showing_help = false
+local is_launching = false
 local init_vel = vec.new(0, 0)
 local timepassed = 0
 local timeforsimulation = 0
-local timestep = 0.15
-local hit = false
+local time_step = 0.15
+local is_hit_target = false
 local colors = {
 	ball = { 0, 255, 10 },
 	ball_hit = { 255, 0, 0 },
 	line = { 255, 55, 0 },
 }
 local ball_radius = 3
+local target_radius = 10
+local obstacle_radius = 15
 
 ---return a mock simulator object
 ---@return simulator
@@ -92,24 +92,35 @@ local function time_for_out_of_bounds(boundx, boundy, pos, v0, angle, g)
 	return math.min(time_x, time_y)
 end
 
+function simulator:time_to_target()
+	return ""
+end
+
 function simulator:reset_simulation()
 	init_vel = vec.new_with_mod(get_launch_vel(self.k, self.compression, self.m), self.angle)
 	timeforsimulation = time_for_out_of_bounds(G.width, G.height, vec.new(0, self.h0), init_vel, self.angle, self.g)
 	timepassed = 0
-	hit = false
+	is_hit_target = false
+	is_launching = false
+end
+function simulator:init_launch()
+		self:reset_simulation()
+		-- as reset_simulation stops the simulation, in this special case rerun it
+		is_launching = true
 end
 
 function simulator:update(dt)
 	function make_ui()
 		suit.layout:reset(0, 0)
-		suit.Label("Angulo:", suit.layout:row(150, 20))
-		suit.Input(input_angulo, suit.layout:row(150, 20))
-		suit.Label("Compresion:", suit.layout:row(150, 20))
-		suit.Input(input_compresion, suit.layout:row(150, 20))
+		suit.Label("Debug:", { align = "left" }, suit.layout:row(50, 20))
+		suit.Checkbox(debug_draw_checkbox, suit.layout:col(20, 20))
+		-- suit.layout:row(40, 40)
+		suit.layout:left(40, 20)
 		-- separation
-		suit.layout:row(200, 10)
-		suit.Label("Debug:", { align = "left" }, suit.layout:row(75, 40))
-		suit.Checkbox(debug_draw_checkbox, suit.layout:col(40, 40))
+		suit.Label("Angulo:", { align = "left" }, suit.layout:row(150, 20))
+		suit.Input(input_angulo, suit.layout:row(150, 20))
+		suit.Label("Compresion (%):", { align = "left" }, suit.layout:row(150, 20))
+		suit.Input(input_compresion, suit.layout:row(150, 20))
 		suit.layout:row(200, 10)
 
 		if suit.Button("Reset", suit.layout:row(70, 30)).hit then
@@ -125,35 +136,31 @@ function simulator:update(dt)
 		end
 		suit.layout:col(10, 30)
 		if suit.Button("Launch", suit.layout:col(70, 30)).hit then
-			if not launching then
-				launching = true
-				self:reset_simulation()
-			else
-				launching = false
-				timepassed = 0
-			end
+			self:init_launch()
 		end
 	end
 	function update_ui()
-    if input_angulo.text == "" or input_compresion.text == "" then
-      return
-    end
-    if tonumber(input_compresion.text) == nil or tonumber(input_angulo.text) == nil  then
-      input_compresion.text = tostring(self.compression)
-      input_angulo.text = tostring(self.angle)
-    end
-		if tostring(self.compression) ~= input_compresion.text or tostring(self.angle) ~= input_angulo.text then
-			self.compression = tonumber(input_compresion.text) or self.compression
+		if input_angulo.text == "" or input_compresion.text == "" or input_angulo.text == "-" then
+			return
+		end
+		if tonumber(input_compresion.text) == nil or tonumber(input_angulo.text) == nil then
+			input_compresion.text = tostring(self.compression)
+			input_angulo.text = tostring(self.angle)
+		end
+		if self.compression ~= tonumber(input_compresion.text) /100 or self.angle ~= tonumber(input_angulo.text) then
+			self.compression = tonumber(input_compresion.text) / 100 or self.compression
 			self.angle = tonumber(input_angulo.text) or self.angle
+      local was_launching =is_launching
 			self:reset_simulation()
+      if was_launching then is_launching = true end
 		end
 	end
-	make_ui()
 	update_ui()
+	make_ui()
 end
 
 function simulator:draw_launch()
-	timepassed = timepassed + timestep
+	timepassed = timepassed + time_step
 
 	-- dibujar proyectil
 	love.graphics.setColor(colors.ball)
@@ -166,20 +173,19 @@ function simulator:draw_launch()
 	-- if reached the edge in x or y of the window
 	if timepassed > timeforsimulation then
 		timepassed = 0
-		hit = false
+		is_hit_target = false
 	end
 
 	-- collision
 	local distance = vec.new(self.L, G.height - self.hf) - projectile_pos
-	if distance:mod() < 6 then
-		hit = true
+	-- this assumes that the radius of the target is the same as the ball
+	if distance:mod() < ball_radius + target_radius then
+		is_hit_target = true
 	end
-	if hit then
+	if is_hit_target then
 		love.graphics.setColor(colors.ball_hit)
-		love.graphics.circle("fill", self.L, G.height - self.hf, 3)
-		if debug_draw_checkbox.checked then
-			love.graphics.print("Hit!", 0, 40)
-		end
+		-- draw target with another color
+		love.graphics.circle("fill", self.L, G.height - self.hf, target_radius)
 	end
 end
 
@@ -252,21 +258,21 @@ function simulator:draw_debug()
 end
 
 function simulator:draw()
-	if show_help then
+	if is_showing_help then
 		draw_help()
 		return
 	end
 
 	-- draw a point in the target pos (L, hf)
 	love.graphics.setColor(colors.ball)
-	love.graphics.circle("fill", self.L, G.height - self.hf, 3)
+	love.graphics.circle("fill", self.L, G.height - self.hf, target_radius)
 	-- draw a line of lenght 70 * spring compression, with the angle.
 	love.graphics.setColor(colors.line)
 	local line_vec = vec.new_with_mod(140 * self.compression, self.angle)
 	love.graphics.line(0, G.height - self.h0, line_vec.x, G.height - self.h0 - line_vec.y)
 	-- draw obstacle
 	love.graphics.setColor(255, 0, 0)
-	love.graphics.circle("fill", self.obstacle_pos.x, G.height - self.obstacle_pos.y, 3)
+	love.graphics.circle("fill", self.obstacle_pos.x, G.height - self.obstacle_pos.y, obstacle_radius)
 
 	self:draw_data()
 
@@ -274,40 +280,11 @@ function simulator:draw()
 		self:draw_debug()
 	end
 
-	if launching then
+	if is_launching then
 		self:draw_launch()
 	end
 end
 
 function simulator:wheelmoved(x, y) end
-
----@param key love.KeyConstant
-function simulator:keypressed(key)
-	-- if key == "r" then
-	-- 	local h0, hf, m, k, L, obstacle, g = generate_simulator()
-	-- 	self.h0 = h0
-	-- 	self.hf = hf
-	-- 	self.m = m
-	-- 	self.k = k
-	-- 	self.L = L
-	-- 	self.obstacle_pos = obstacle
-	-- 	self.g = g
-	-- 	self:reset_simulation()
-	-- end
-	-- if key == "h" then
-	-- 	show_help = not show_help
-	-- end
-	-- if key == "d" then
-	-- 	debug_draw = debug_draw
-	-- end
-	-- if key == "l" then
-	-- 	if not launching then
-	-- 		launching = true
-	-- 		self:reset_simulation()
-	-- 	else
-	-- 		launching = false
-	-- 		timepassed = 0
-	-- 	end
-	-- end
-end
+function simulator:keypressed(key) end
 return simulator

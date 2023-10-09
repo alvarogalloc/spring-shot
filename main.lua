@@ -30,7 +30,7 @@ function love.load()
 end
 
 function love.update(dt)
-	-- require("lurker").update()
+	require("lurker").update()
 	-- Scale value
 	G.scaleX = love.graphics.getWidth() / G.width
 	G.scaleY = love.graphics.getHeight() / G.height
