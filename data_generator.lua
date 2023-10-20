@@ -1,5 +1,4 @@
-
--- right now i have a mock data that is just random data 
+-- right now i have a mock data that is just random data
 -- i want to make a function that generates the same but with constraints
 -- it generates the call to a simulator constructor with these params
 -- h0 : initial height
@@ -11,17 +10,17 @@
 -- g : gravity
 math.randomseed(os.time())
 function generate_simulator()
-    -- Generate random values within the specified constraints
-    local h0 = math.random(0, 400)
-    local hf = math.random(0, 400)
-    local m = math.random() * 9.99 + 0.1  -- Random mass between 0.1 and 100
-    local k = math.random(10000, 30000)
-    local L = math.random(400, 599)  -- Random length between 0 and 599.9
-    local obstacle_x = math.random(401, L)  -- Assuming x coordinate of obstacle is between 601 and 1000
-    local obstacle_y = math.random(401, hf)  -- Assuming y coordinate of obstacle is between 601 and 1000
-    local g = math.random(5, 10)
+	-- Generate random values within the specified constraints
+	local h0 = math.random(0, 400)
+	local hf = math.random(0, 400)
+	local m = math.random() * 9.99 + 0.1 -- Random mass between 0.1 and 100
+	local k = math.random(10000, 30000)
+	local L = math.random(1, 599) -- Random length between 0 and 599.9
+	local obstacle_x = math.random(0, L) -- Assuming x coordinate of obstacle is between 601 and 1000
+	local obstacle_y = math.random(math.min(h0, hf),math.max(h0, hf)) -- Assuming y coordinate of obstacle is between 601 and 1000
+	local g = math.random(5, 10)
 
-  return h0, hf, m, k, L, vec.new(obstacle_x, obstacle_y), g
+	return h0, hf, m, k, L, vec.new(obstacle_x, obstacle_y), g
 end
 
 return generate_simulator
