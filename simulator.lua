@@ -212,13 +212,13 @@ function simulator:draw_data()
 	-- draw the data of the simulator to the right of the screen
 	local data = {
 		"Datos del simulador",
-		string.format("Altura inicial: %.2f", self.h0),
-		string.format("Altura final: %.2f", self.hf),
-		string.format("Masa: %.2f", self.m),
-		string.format("Constante del resorte: %.2f", self.k),
-		string.format("Distancia al objetivo: %.2f", self.L),
-		string.format("Posición del obstáculo: (%.2f, %.2f)", self.obstacle_pos.x, self.obstacle_pos.y),
+		string.format("Masa balón: %.2f", self.m),
 		string.format("Gravedad: %.2f", self.g),
+		string.format("Constante del resorte: %.2f", self.k),
+		string.format("Altura final: %.2f", self.hf),
+		string.format("Altura inicial: %.2f", self.h0),
+		string.format("Distancia horizontal: %.2f", self.L),
+		string.format("Posición del obstáculo: (x: %.2f,y: %.2f)", self.obstacle_pos.x, self.obstacle_pos.y),
 	}
 	local x = 0
 	local y = 0

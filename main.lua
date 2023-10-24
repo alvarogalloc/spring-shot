@@ -30,8 +30,10 @@ function love.load()
 end
 
 function love.update(dt)
-  -- uncomment line to live reload
-	-- require("lurker").update()
+	-- uncomment line to live reload
+	if arg[2] == "debug" then
+		require("lurker").update()
+	end
 	-- Scale value
 	G.scaleX = love.graphics.getWidth() / G.width
 	G.scaleY = love.graphics.getHeight() / G.height
