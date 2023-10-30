@@ -31,28 +31,27 @@ local ball_radius = 3
 local target_radius = 10
 local obstacle_radius = 15
 
+local function benchmark(name,func)
+	local start = os.clock()
+	func()
+	print(string.format("func %s takes %.3f", name, os.clock() - start))
+end
+
 ---return a mock simulator object
 ---@return simulator
 function simulator.mock()
-	-- h0: 100
-	-- hf: 100
-	-- m: 1
-	-- k: 40000
-	-- L: 400
-	-- obstacle_pos (x,y): 100, 500
-	-- g: 9
-	return simulator.new(0, 1, 50, 3000000, 300, vec.new(550, 400), 9.81)
+	return simulator.new(1, 9.81, 10000, 240, 120, 400, vec.new(90, 151))
 end
 
 ---return a new simulator object
----@param h0 number
----@param hf number
 ---@param m number
+---@param g number
 ---@param k number
+---@param hf number
+---@param h0 number
 ---@param L number
 ---@param obstacle_pos vec
----@param g number
-function simulator.new(h0, hf, m, k, L, obstacle_pos, g)
+function simulator.new(m, g, k, hf, h0, L, obstacle_pos)
 	local ret =
 		{ h0 = h0, hf = hf, m = m, k = k, L = L, obstacle_pos = obstacle_pos, g = g, angle = 45, compression = 0.98 }
 	setmetatable(ret, simulator)
@@ -104,9 +103,9 @@ function simulator:reset_simulation()
 	is_launching = false
 end
 function simulator:init_launch()
-		self:reset_simulation()
-		-- as reset_simulation stops the simulation, in this special case rerun it
-		is_launching = true
+	self:reset_simulation()
+	-- as reset_simulation stops the simulation, in this special case rerun it
+	is_launching = true
 end
 
 function simulator:update(dt)
@@ -147,16 +146,18 @@ function simulator:update(dt)
 			input_compresion.text = tostring(self.compression)
 			input_angulo.text = tostring(self.angle)
 		end
-		if self.compression ~= tonumber(input_compresion.text) /100 or self.angle ~= tonumber(input_angulo.text) then
+		if self.compression ~= tonumber(input_compresion.text) / 100 or self.angle ~= tonumber(input_angulo.text) then
 			self.compression = tonumber(input_compresion.text) / 100 or self.compression
 			self.angle = tonumber(input_angulo.text) or self.angle
-      local was_launching =is_launching
+			local was_launching = is_launching
 			self:reset_simulation()
-      if was_launching then is_launching = true end
+			if was_launching then
+				is_launching = true
+			end
 		end
 	end
 	update_ui()
-	make_ui()
+  make_ui()
 end
 
 function simulator:draw_launch()
