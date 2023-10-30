@@ -27,9 +27,9 @@ local colors = {
 	ball_hit = { 255, 0, 0 },
 	line = { 255, 55, 0 },
 }
-local ball_radius = 3
+local ball_radius = 1
 local target_radius = 10
-local obstacle_radius = 15
+local obstacle_radius = 1
 
 local function benchmark(name, func)
 	local start = os.clock()
@@ -169,7 +169,7 @@ function simulator:draw_launch()
 		x_at_t(init_vel, self.angle, timepassed),
 		G.height - self.h0 - y_at_t(init_vel, self.angle, self.g, timepassed)
 	)
-	love.graphics.circle("fill", projectile_pos.x, projectile_pos.y, ball_radius)
+	love.graphics.circle("fill", projectile_pos.x, projectile_pos.y, ball_radius + 2)
 
 	-- if reached the edge in x or y of the window
 	if timepassed > timeforsimulation then
@@ -276,7 +276,7 @@ function simulator:draw()
 	love.graphics.line(0, G.height - self.h0, line_vec.x, G.height - self.h0 - line_vec.y)
 	-- draw obstacle
 	love.graphics.setColor(255, 0, 0)
-	love.graphics.circle("fill", self.obstacle_pos.x, G.height - self.obstacle_pos.y, obstacle_radius)
+	love.graphics.circle("fill", self.obstacle_pos.x, G.height - self.obstacle_pos.y, obstacle_radius + 2)
 
 	self:draw_data()
 
