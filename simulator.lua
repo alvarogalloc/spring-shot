@@ -175,6 +175,7 @@ function simulator:draw_launch()
 	if timepassed > timeforsimulation then
 		timepassed = 0
 		is_hit_target = false
+    self:reset_simulation()
 	end
 
 	-- collision
@@ -187,6 +188,8 @@ function simulator:draw_launch()
 	end
 	if distance:mod() < ball_radius + target_radius then
 		is_hit_target = true
+    self:reset_simulation()
+    is_hit_target = true
 	end
 	if is_hit_target then
 		love.graphics.setColor(colors.ball_hit)
