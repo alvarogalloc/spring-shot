@@ -22,7 +22,7 @@ function generate_simulator()
 	local h0 = math.random(0, 400)
 	local hf = math.random(0, 400)
 	local m = math.random() * 4.99 + 0.1 -- Random mass between 0.1 and 100
-	local k = math.random(10000, 50000)
+	local k = math.random(10000, 40000)
 	local L = math.random(300, 599) -- Random length between 0 and 599.9
 	local obstacle_x, obstacle_y = gen_obstacle_xy(h0, hf, L) -- Assuming x coordinate of obstacle is between 601 and 1000
 	local g = math.random(3, 7)
