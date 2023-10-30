@@ -175,7 +175,7 @@ function simulator:draw_launch()
 	if timepassed > timeforsimulation then
 		timepassed = 0
 		is_hit_target = false
-    self:reset_simulation()
+		self:reset_simulation()
 	end
 
 	-- collision
@@ -188,13 +188,8 @@ function simulator:draw_launch()
 	end
 	if distance:mod() < ball_radius + target_radius then
 		is_hit_target = true
-    self:reset_simulation()
-    is_hit_target = true
-	end
-	if is_hit_target then
-		love.graphics.setColor(colors.ball_hit)
-		-- draw target with another color
-		love.graphics.circle("fill", self.L, G.height - self.hf, target_radius)
+		self:reset_simulation()
+		is_hit_target = true
 	end
 end
 
@@ -291,6 +286,11 @@ function simulator:draw()
 
 	if is_launching then
 		self:draw_launch()
+	end
+	if is_hit_target then
+		love.graphics.setColor(colors.ball_hit)
+		-- draw target with another color
+		love.graphics.circle("fill", self.L, G.height - self.hf, target_radius)
 	end
 end
 
