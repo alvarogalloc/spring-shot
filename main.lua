@@ -6,8 +6,8 @@ local suit = require("suit")
 require("data_generator")
 
 G = {
-	width = 600,
-	height = 600,
+	width = 700,
+	height = 700,
 	fullscreenON = false,
 	fullscreenKEY = "f11",
 	scaleX = 0,
