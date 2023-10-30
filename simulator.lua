@@ -31,7 +31,7 @@ local ball_radius = 3
 local target_radius = 10
 local obstacle_radius = 15
 
-local function benchmark(name,func)
+local function benchmark(name, func)
 	local start = os.clock()
 	func()
 	print(string.format("func %s takes %.3f", name, os.clock() - start))
@@ -157,7 +157,7 @@ function simulator:update(dt)
 		end
 	end
 	update_ui()
-  make_ui()
+	make_ui()
 end
 
 function simulator:draw_launch()
@@ -179,7 +179,12 @@ function simulator:draw_launch()
 
 	-- collision
 	local distance = vec.new(self.L, G.height - self.hf) - projectile_pos
+	local distance_to_obstacle = vec.new(projectile_pos.x, G.height - projectile_pos.y) - self.obstacle_pos
 	-- this assumes that the radius of the target is the same as the ball
+	-- print(distance_to_obstacle:mod())
+	if distance_to_obstacle:mod() < ball_radius + obstacle_radius then
+		self:reset_simulation()
+	end
 	if distance:mod() < ball_radius + target_radius then
 		is_hit_target = true
 	end
