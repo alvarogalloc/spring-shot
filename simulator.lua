@@ -20,16 +20,19 @@ local is_launching = false
 local init_vel = vec.new(0, 0)
 local timepassed = 0
 local timeforsimulation = 0
-local time_step = 0.08
+local time_step = 0.04
 local is_hit_target = false
 local colors = {
 	ball = { 0, 255, 10 },
 	ball_hit = { 255, 0, 0 },
 	line = { 255, 55, 0 },
 }
+local function new_obstacle_radius()
+  return math.random(25, 50)
+end
 local ball_radius = 1
 local target_radius = 10
-local obstacle_radius = 1
+local obstacle_radius = new_obstacle_radius()
 
 local function benchmark(name, func)
 	local start = os.clock()
@@ -124,6 +127,7 @@ function simulator:update(dt)
 
 		if suit.Button("Reset", suit.layout:row(70, 30)).hit then
 			local h0, hf, m, k, L, obstacle, g = generate_simulator()
+      obstacle_radius = new_obstacle_radius()
 			self.h0 = h0
 			self.hf = hf
 			self.m = m
@@ -183,7 +187,7 @@ function simulator:draw_launch()
 	local distance_to_obstacle = vec.new(projectile_pos.x, G.height - projectile_pos.y) - self.obstacle_pos
 	-- this assumes that the radius of the target is the same as the ball
 	-- print(distance_to_obstacle:mod())
-	if distance_to_obstacle:mod() < ball_radius + obstacle_radius then
+	if distance_to_obstacle:mod() < obstacle_radius then
 		self:reset_simulation()
 	end
 	if distance:mod() < ball_radius + target_radius then
@@ -223,6 +227,7 @@ function simulator:draw_data()
 		string.format("Altura inicial: %.2f", self.h0),
 		string.format("Distancia horizontal: %.2f", self.L),
 		string.format("Posición del obstáculo: (x: %.2f,y: %.2f)", self.obstacle_pos.x, self.obstacle_pos.y),
+		string.format("Radio del Obstaculo %d", obstacle_radius),
 	}
 	local x = 0
 	local y = 0
@@ -276,7 +281,7 @@ function simulator:draw()
 	love.graphics.line(0, G.height - self.h0, line_vec.x, G.height - self.h0 - line_vec.y)
 	-- draw obstacle
 	love.graphics.setColor(255, 0, 0)
-	love.graphics.circle("fill", self.obstacle_pos.x, G.height - self.obstacle_pos.y, obstacle_radius + 2)
+	love.graphics.circle("fill", self.obstacle_pos.x, G.height - self.obstacle_pos.y, obstacle_radius)
 
 	self:draw_data()
 

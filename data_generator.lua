@@ -11,8 +11,8 @@
 math.randomseed(os.time())
 
 local function gen_obstacle_xy(h0, hf, L)
-	local x = L / 2
-	local y = h0 + (hf - h0) / 2
+	local x = math.floor(math.random(0.6*L/6, 5.6*L/6))
+	local y = math.floor(math.random(h0 + (hf - h0) / 2, math.max(hf, h0)))
 	return x,y
 end
 
